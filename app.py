@@ -1,4 +1,6 @@
-cd ~/line_flask_bot
+import os
+from flask import Flask, request, abort
+
 source venv/bin/activate   # 前面已經有 (venv) 就可以略過
 
 cat > app.py << 'EOF'
