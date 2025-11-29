@@ -1,39 +1,23 @@
-from flask import Flask, request, abort
-from linebot import LineBotApi, WebhookHandler
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from flask import Flask, request
 
 app = Flask(__name__)
 
-CHANNEL_ACCESS_TOKEN = "你的 Access Token"
-CHANNEL_SECRET = "你的 Channel Secret"
+@app.route("/", methods=["GET"])
+def index():
+    # 給 Render / 健康檢查用
+    return "OK", 200
 
-line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(CHANNEL_SECRET)
 
-@app.route("/callback", methods=['POST'])
+@app.route("/callback", methods=["GET", "POST"])
 def callback():
-    signature = request.headers.get('X-Line-Signature')
-
+    # 不做任何簽章驗證，先確定 LINE 打得進來
     body = request.get_data(as_text=True)
-    print("Received body:", body)
+    print("Got request from LINE:")
+    print(body)
+    return "OK", 200
 
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-
-    return 'OK', 200
-
-
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    user_text = event.message.text
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=f"你說了：{user_text}")
-    )
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    # 在本機開發用，Render 會用 gunicorn 啟動，不會用到這行的 port
+    app.run(port=5000, debug=True)
 
